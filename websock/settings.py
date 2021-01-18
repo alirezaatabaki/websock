@@ -128,3 +128,11 @@ STATIC_URL = '/static/'
 
 # channels
 ASGI_APPLICATION = 'websock.routing.application'
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [('localhost', 6379)],
+        },
+    },
+}
