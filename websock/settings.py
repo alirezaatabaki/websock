@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     # Third Party Apps
+    'channels',
 
     # My Local Apps
     'echo.apps.EchoConfig',
@@ -72,7 +73,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'websock.wsgi.application'
+# WSGI_APPLICATION = 'websock.wsgi.application'
 
 
 # Database
@@ -123,3 +124,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
+
+
+# channels
+ASGI_APPLICATION = 'websock.routing.application'
