@@ -1,8 +1,9 @@
-from channels.generic.websocket import WebsocketConsumer
-
+from channels.generic.websocket import WebsocketConsumer, AsyncWebsocketConsumer, AsyncJsonWebsocketConsumer
+from channels.consumer import AsyncConsumer, SyncConsumer
 from asgiref.sync import async_to_sync
 
 import json
+
 
 class EchoConsumer(WebsocketConsumer):
     def connect(self):
@@ -18,28 +19,28 @@ class EchoConsumer(WebsocketConsumer):
             self.send(bytes_data=bytes_data)
 
 
-class ChatConsumer(WebsocketConsumer):
-    def connect(self):
+class ChatConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
         self.user_id = self.scope['url_route']['kwargs']['username']
         self.group_name = f"chat_{self.user_id}"
 
-        async_to_sync(self.channel_layer.group_add)(
+        self.channel_layer.group_add(
             self.group_name, self.channel_name
         )
-        self.accept()
+        await self.accept()
 
-    def disconnect(self, close_code):
-        async_to_sync(self.channel_layer.group_discard)(
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(
             self.group_name, self.channel_name
         )
 
-    def receive(self, text_data=None, bytes_data=None):
+    async def receive(self, text_data=None, bytes_data=None):
         if text_data:
             text_data_json = json.loads(text_data)
             username = text_data_json['receiver']
             user_group_name = f"chat_{username}"
 
-            async_to_sync(self.channel_layer.group_send)(
+            await self.channel_layer.group_send(
                 user_group_name,
                 {
                     'type': 'chat_message',
@@ -47,6 +48,17 @@ class ChatConsumer(WebsocketConsumer):
                 }
             )
 
-    def chat_message(self, event):
+    async def chat_message(self, event):
         message = event['message']
-        self.send(text_data=message)
+        await self.send(text_data=message)
+
+
+class TestConsumer(AsyncJsonWebsocketConsumer):
+    async def connect(self):
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        pass
+
+    async def receive_json(self, content):
+        await self.send_json(content)
